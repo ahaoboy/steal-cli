@@ -20,7 +20,8 @@
     "release-alpha": "pnpm publish -r --access public --tag alpha",
     "bundle": "esbuild --outdir=bundle --bundle --minify --platform=node --format=cjs src/cli.ts",
     "bump": "pnpm up --latest --force",
-    "test": "vitest"
+    "test": "vitest",
+    "test:run": "vitest --run"
   },
   "keywords": ["steal-cli"],
   "author": "ahaoboy <504595380@qq.com> (https://github.com/ahaoboy)",
