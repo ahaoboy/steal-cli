@@ -98,3 +98,19 @@ export function getAssetNames(
 export function getBinName(bin: string) {
   return process.platform === "win32" ? `${bin}.exe` : bin
 }
+
+
+export function parseDownloadUrl(url: string) {
+  const regex = /https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/(.+)/;
+  const match = url.match(regex);
+
+  if (match) {
+    const [, owner, repo, tag, name] = match;
+    return {
+      owner,
+      repo,
+      tag,
+      name
+    };
+  }
+}

@@ -1,9 +1,7 @@
 import { run } from "./setup"
 
 const { argv } = process
-const url = argv[2]
-const version = argv[3]
-const bin = argv[4]
+const [url, bin, version] = argv.slice(2)
 
 if (!url) {
   console.log("steal <url> <bin> <version>")
