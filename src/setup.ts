@@ -6,9 +6,8 @@ import { homedir } from "os"
 import { existsSync } from "fs"
 import { execFileSync } from "child_process"
 
-const installDir = path.join(homedir(), "steal-cli")
-
 export async function setup(input: Input): Promise<Output> {
+  const installDir = path.join(homedir(), input.installDir ?? "steal-cli")
   const { url: repo, version = "latest", bin } = input
   const url = await new Repo(repo).getAssetUrl(
     bin?.length ? bin : undefined,
@@ -24,7 +23,8 @@ export async function setup(input: Input): Promise<Output> {
 }
 
 export async function run(input: Input, args = process.argv.slice(2)) {
-  const binPath = join(installDir, getBinName(input.bin))
+  const installDir = path.join(homedir(), input.installDir ?? "steal-cli")
+  const binPath = join(installDir, input.version ?? "latest", getBinName(input.bin))
   if (!existsSync(binPath)) {
     await setup(input)
   }
