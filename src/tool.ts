@@ -2,6 +2,7 @@ import * as fs from "fs"
 import { execSync } from "child_process"
 import { tmpdir } from "os"
 import * as path from "path"
+import { readFileSync } from "fs"
 
 export function getFetchOption() {
   const headers: HeadersInit = {
@@ -60,57 +61,149 @@ export function extractTo(compressedFilePath: string, outputDir: string) {
   console.error(`Error: Unsupported file type: ${compressedFilePath}`)
 }
 
-export function getAssetNames(
-  name: string,
-  os = process.platform,
-  arch = process.arch,
-): string[] {
-  let _arch: string
-  switch (arch) {
-    case "arm64":
-      _arch = "aarch64"
-      break
-    case "x64":
-      _arch = "x86_64"
-      break
-    default:
-      throw new Error(`Unsupported architechture ${process.arch}.`)
-  }
-
-  let platform: string[]
+export function getPlatforms(os = process.platform) {
+  let platforms: string[]
   switch (os) {
     case "linux":
-      platform = ["unknown-linux-gnu"]
+      platforms = ["unknown-linux-gnu"]
       break
     case "darwin":
-      platform = ["apple-darwin"]
+      platforms = ["apple-darwin"]
       break
     case "win32":
-      platform = ["pc-windows-msvc", "pc-windows-gnu"]
+      platforms = ["pc-windows-msvc", "pc-windows-gnu"]
       break
     default:
       throw new Error(`Unsupported platform ${os}.`)
   }
+  return platforms
+}
 
-  return platform.map((i) => `${name}-${_arch}-${i}`)
+export function getTriple(
+  platform = process.platform,
+  arch = process.arch,
+  musl = isMusl(),
+): string[] {
+  switch (platform) {
+    case "darwin": {
+      switch (arch) {
+        case "arm64": {
+          return ["aarch64-apple-darwin"]
+        }
+        case "x64": {
+          return ["x86_64-apple-darwin"]
+        }
+      }
+    }
+    case "linux": {
+      switch (arch) {
+        case "arm64": {
+          if (musl) {
+            return ["aarch64-unknown-linux-musl", "aarch64-unknown-linux-gnu"]
+          }
+          return ["aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl"]
+        }
+        case "x64": {
+          if (musl) {
+            return ["x86_64-unknown-linux-musl", "x86_64-unknown-linux-gnu"]
+          }
+          return ["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
+        }
+      }
+    }
+
+    case "win32": {
+      switch (arch) {
+        case "x64": {
+          return ["x86_64-pc-windows-msvc", "x86_64-pc-windows-gnu"]
+        }
+      }
+    }
+  }
+
+  return []
+}
+
+export function getAssetNames(
+  name: string,
+  platform = process.platform,
+  arch = process.arch,
+  musl = isMusl(),
+): string[] {
+  return getTriple(platform, arch, musl).map((i) => `${name}-${i}`)
 }
 
 export function getBinName(bin: string) {
   return process.platform === "win32" ? `${bin}.exe` : bin
 }
 
-
 export function parseDownloadUrl(url: string) {
-  const regex = /https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/(.+)/;
-  const match = url.match(regex);
+  const regex =
+    /https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/(.+)/
+  const match = url.match(regex)
 
   if (match) {
-    const [, owner, repo, tag, name] = match;
+    const [, owner, repo, tag, name] = match
     return {
       owner,
       repo,
       tag,
-      name
-    };
+      name,
+    }
+  }
+}
+
+export function isMusl() {
+  let musl = false
+  if (process.platform === "linux") {
+    musl = isMuslFromFilesystem()
+    if (musl === null) {
+      musl = isMuslFromReport()
+    }
+    if (musl === null) {
+      musl = isMuslFromChildProcess()
+    }
+  }
+  return musl
+}
+
+const isFileMusl = (f: string) =>
+  f.includes("libc.musl-") || f.includes("ld-musl-")
+
+const isMuslFromFilesystem = () => {
+  try {
+    return readFileSync("/usr/bin/ldd", "utf-8").includes("musl")
+  } catch {
+    return false
+  }
+}
+
+const isMuslFromReport = () => {
+  const report: any =
+    typeof process.report.getReport === "function"
+      ? process.report.getReport()
+      : null
+  if (!report) {
+    return false
+  }
+  if (report.header?.glibcVersionRuntime) {
+    return false
+  }
+  if (Array.isArray(report.sharedObjects)) {
+    if (report.sharedObjects.some(isFileMusl)) {
+      return true
+    }
+  }
+  return false
+}
+
+const isMuslFromChildProcess = () => {
+  try {
+    return require("child_process")
+      .execSync("ldd --version", { encoding: "utf8" })
+      .includes("musl")
+  } catch (e) {
+    // If we reach this case, we don't know if the system is musl or not, so is better to just fallback to false
+    return false
   }
 }

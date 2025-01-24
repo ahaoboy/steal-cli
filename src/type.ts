@@ -2,7 +2,6 @@ export type Input = {
   url: string
   version?: string
   bin: string
-  installDir?: string
 }
 
 export type Output = {
