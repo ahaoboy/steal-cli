@@ -36,7 +36,7 @@ jobs:
           pnpm run test:run
       - name: test ei
         run: |
-           node ./bundle/cli.js https://github.com/ahaoboy/easy-install latest ei -- --version
+           node ./bundle/cli.js https://github.com/ahaoboy/easy-install ei latest -- --version
       - name: test deno
         run: |
-           node ./bundle/cli.js https://github.com/denoland/deno latest deno -- --version
+           node ./bundle/cli.js https://github.com/denoland/deno deno latest -- --version
