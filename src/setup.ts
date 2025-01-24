@@ -12,11 +12,7 @@ export async function setup(input: Input): Promise<Output> {
 }
 
 export async function run(input: Input, args = process.argv.slice(2)) {
-  const binPath = join(
-    STEAL_CLI_DIR,
-    input.version ?? "latest",
-    getBinName(input.bin),
-  )
+  const binPath = join(STEAL_CLI_DIR, getBinName(input.bin))
   if (!existsSync(binPath)) {
     await setup(input)
   }

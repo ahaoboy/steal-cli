@@ -1,8 +1,11 @@
 import { Repo } from "./repo"
-import { download, extractTo, } from "./tool"
-import type { Input, Output, } from "./type"
+import { download, extractTo } from "./tool"
+import type { Input, Output } from "./type"
 
-export async function install(input: Input, installDir: string): Promise<Output> {
+export async function install(
+  input: Input,
+  installDir: string,
+): Promise<Output> {
   const { url, version = "latest", bin } = input
   const downloadUrl = await new Repo(url).getAssetUrl(
     bin?.length ? bin : undefined,
