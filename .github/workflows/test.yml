@@ -1,0 +1,42 @@
+name: Test
+
+permissions:
+  contents: write
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -CeEuo pipefail {0}
+
+jobs:
+  rust-test:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-latest, macos-13]
+    runs-on: ${{ matrix.os }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: vitest
+        run: |
+          pnpm install
+          pnpm run build
+          pnpm run bundle
+          pnpm run test:run
+      - name: test deno
+        run: |
+           node ./bundle/cli.js https://github.com/ahaoboy/easy-install latest ei -- --version
+      - name: test ei
+        run: |
+           node ./bundle/cli.js https://github.com/denoland/deno latest deno -- --version

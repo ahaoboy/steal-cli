@@ -1,0 +1,35 @@
+{
+  "name": "steal-cli",
+  "version": "0.1.0",
+  "homepage": "https://github.com/ahaoboy/steal-cli#readme",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "steal": "bundle/cli.js"
+  },
+  "files": ["dist", "bundle", "readme.md", "package.json"],
+  "description": "steal-cli",
+  "scripts": {
+    "dev": "tsc -w -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "biome check --apply-unsafe  ./",
+    "format": "biome format --write  ./",
+    "lint:fix": "biome lint ./ --write --unsafe",
+    "clear": "rm -rf node_modules dist",
+    "release": "pnpm publish -r --access public",
+    "release-alpha": "pnpm publish -r --access public --tag alpha",
+    "bundle": "esbuild --outdir=bundle --bundle --minify --platform=node --format=cjs src/cli.ts",
+    "bump": "pnpm up --latest --force",
+    "test": "vitest"
+  },
+  "keywords": ["steal-cli"],
+  "author": "ahaoboy <504595380@qq.com> (https://github.com/ahaoboy)",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/node": "^22.10.10",
+    "esbuild": "^0.24.2",
+    "typescript": "5.7.3",
+    "vitest": "3.0.4"
+  }
+}
