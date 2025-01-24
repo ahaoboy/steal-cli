@@ -9,7 +9,7 @@ test("getAssetNames", () => {
     "deno-x86_64-pc-windows-gnu",
   ])
   expect(getAssetNames("deno", "linux", "x64")).toEqual([
-    "deno-x86_64-unknown-linux-gnu",
+    "deno-x86_64-unknown-linux-gnu", "deno-x86_64-unknown-linux-musl",
   ])
   expect(getAssetNames("deno", "darwin", "x64")).toEqual([
     "deno-x86_64-apple-darwin",
